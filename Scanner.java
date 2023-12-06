@@ -11,19 +11,19 @@ public class Scanner {
 
     static {
         palabrasReservadas = new HashMap<>();
-        palabrasReservadas.put("and",    TipoToken.AND);
-        palabrasReservadas.put("else",   TipoToken.ELSE);
-        palabrasReservadas.put("false",  TipoToken.FALSE);
-        palabrasReservadas.put("for",    TipoToken.FOR);
-        palabrasReservadas.put("fun",    TipoToken.FUN);
-        palabrasReservadas.put("if",     TipoToken.IF);
-        palabrasReservadas.put("null",   TipoToken.NULL);
-        palabrasReservadas.put("or",     TipoToken.OR);
-        palabrasReservadas.put("print",  TipoToken.PRINT);
+        palabrasReservadas.put("and", TipoToken.AND);
+        palabrasReservadas.put("else", TipoToken.ELSE);
+        palabrasReservadas.put("false", TipoToken.FALSE);
+        palabrasReservadas.put("for", TipoToken.FOR);
+        palabrasReservadas.put("fun", TipoToken.FUN);
+        palabrasReservadas.put("if", TipoToken.IF);
+        palabrasReservadas.put("null", TipoToken.NULL);
+        palabrasReservadas.put("or", TipoToken.OR);
+        palabrasReservadas.put("print", TipoToken.PRINT);
         palabrasReservadas.put("return", TipoToken.RETURN);
-        palabrasReservadas.put("true",   TipoToken.TRUE);
-        palabrasReservadas.put("var",    TipoToken.VAR);
-        palabrasReservadas.put("while",  TipoToken.WHILE);
+        palabrasReservadas.put("true", TipoToken.TRUE);
+        palabrasReservadas.put("var", TipoToken.VAR);
+        palabrasReservadas.put("while", TipoToken.WHILE);
     }
     static {
         tokensUnSimbolo = new HashMap<>();
@@ -55,8 +55,8 @@ public class Scanner {
     private final String source;
 
     private final List<Token> tokens = new ArrayList<>();
-    
-    public Scanner(String source){
+
+    public Scanner(String source) {
         this.source = source + " ";
     }
 
@@ -65,43 +65,39 @@ public class Scanner {
         int estado = 0;
         char c;
 
-        for(int i=0; i<source.length(); i++){
+        for (int i = 0; i < source.length(); i++) {
             c = source.charAt(i);
 
-            switch (estado){
+            switch (estado) {
                 case 0:
-                    if(Character.isLetter(c)){
+                    if (Character.isLetter(c)) {
                         estado = 9;
                         lexema += c;
-                    }
-                    else if(Character.isDigit(c)){
+                    } else if (Character.isDigit(c)) {
                         estado = 11;
                         lexema += c;
                     } else {
-                        if(c == '=' || c == '!' || c == '<' || c == '>') {
+                        if (c == '=' || c == '!' || c == '<' || c == '>') {
                             estado = 12;
                             lexema += c;
-                        } else if(c == '/'){
+                        } else if (c == '/') {
                             estado = 14;
                             lexema += c;
-                        } else if(c == '[' || c == ']') {
+                        } else if (c == '[' || c == ']') {
 
                             lexema += c;
                             Token tu = new Token(TipoToken.error, lexema);
                             tokens.add(tu);
 
-                            estado = 0;
                             lexema = "";
-                        }
-                        else if(c == ' ' || c == '\t' || c == '\r' || c == '\n'){
+                            estado = 0;
+                        } else if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                             // Ignora los espacios, tabulaciones y saltos de línea
-                            estado  = 0; // Esta línea es redundante
-                        }
-                        else if (c == '"'){
+                            estado = 0; // Esta línea es redundante
+                        } else if (c == '"') {
                             estado = 21;
                             lexema += c;
-                        }
-                        else {
+                        } else {
                             estado = 10;
                             lexema += c;
                         }
@@ -110,19 +106,17 @@ public class Scanner {
                     break;
 
                 case 9:
-                    if(Character.isLetter(c) || Character.isDigit(c)){
+                    if (Character.isLetter(c) || Character.isDigit(c)) {
                         estado = 9;
                         lexema += c;
-                    }
-                    else{
+                    } else {
                         // Vamos a crear el Token de identificador o palabra reservada
                         TipoToken tt = palabrasReservadas.get(lexema);
 
-                        if(tt == null){
+                        if (tt == null) {
                             Token t = new Token(TipoToken.IDENTIFIER, lexema);
                             tokens.add(t);
-                        }
-                        else{
+                        } else {
                             Token t = new Token(tt, lexema);
                             tokens.add(t);
                         }
@@ -132,30 +126,26 @@ public class Scanner {
                         i--;
                     }
                     break;
-                case 10: //estado para detectar los tokens que son simbolos
-                        TipoToken tt = tokensUnSimbolo.get(lexema);
-                        Token t = new Token(tt, lexema);
-                        tokens.add(t);
+                case 10: // estado para detectar los tokens que son simbolos
+                    TipoToken tt = tokensUnSimbolo.get(lexema);
+                    Token t = new Token(tt, lexema);
+                    tokens.add(t);
 
-                        
-                        lexema = "";
-                        estado = 0;
-                        i--;
+                    lexema = "";
+                    estado = 0;
+                    i--;
                     break;
                 case 11:
-                    if(Character.isDigit(c)){
+                    if (Character.isDigit(c)) {
                         estado = 11;
                         lexema += c;
-                    }
-                    else if(c == '.'){
+                    } else if (c == '.') {
                         estado = 18;
                         lexema += c;
-                    }
-                    else if(c == 'E'){
+                    } else if (c == 'E') {
                         estado = 19;
                         lexema += c;
-                    }
-                    else{
+                    } else {
                         Token ta = new Token(TipoToken.NUMBER, lexema, Integer.valueOf(lexema));
                         tokens.add(ta);
 
@@ -167,7 +157,7 @@ public class Scanner {
                 case 12:
                     TipoToken td = tokensDosSimbolos.get(lexema);
 
-                    if(c == '=' || c == '!' || c == '<' || c == '>') {
+                    if (c == '=' || c == '!' || c == '<' || c == '>') {
                         estado = 13;
                         lexema += c;
                     } else {
@@ -192,7 +182,7 @@ public class Scanner {
                     if (c == '/') {
                         estado = 15;
                         lexema += c;
-                    } else if(c == '*') {
+                    } else if (c == '*') {
                         estado = 16;
                         lexema += c;
                     } else {
@@ -206,44 +196,43 @@ public class Scanner {
                     }
                     break;
                 case 15:
-                    if(c == '\n'){
+                    if (c == '\n') {
                         estado = 0;
                         lexema = "";
                         i--;
                     } else {
-                        //Token ti =  new Token(TipoToken.COMMENT, lexema);
-                        //tokens.add(ti);
+                        // Token ti = new Token(TipoToken.COMMENT, lexema);
+                        // tokens.add(ti);
                         estado = 15;
                         lexema += c;
                     }
                     break;
                 case 16:
-                    if(c == '*') {
+                    if (c == '*') {
                         estado = 17;
                         lexema += c;
-                    } else{
+                    } else {
                         estado = 16;
                         lexema += c;
                     }
                     break;
-                case 17: 
-                    if(c == '/') {
+                case 17:
+                    if (c == '/') {
                         estado = 0;
                         lexema = "";
-                    } else{
+                    } else {
                         estado = 16;
                         lexema += c;
                     }
                     break;
                 case 18:
-                    if(Character.isDigit(c)) {
+                    if (Character.isDigit(c)) {
                         estado = 18;
                         lexema += c;
-                    } else if(c == 'E') {
+                    } else if (c == 'E') {
                         estado = 19;
                         lexema += c;
-                    } 
-                    else {
+                    } else {
                         Token tu = new Token(TipoToken.NUMBER, lexema, Double.valueOf(lexema));
                         tokens.add(tu);
 
@@ -253,7 +242,7 @@ public class Scanner {
                     }
                     break;
                 case 19:
-                    if(c == '+' || c == '-' || Character.isDigit(c)){
+                    if (c == '+' || c == '-' || Character.isDigit(c)) {
                         estado = 20;
                         lexema += c;
                     } else {
@@ -267,8 +256,8 @@ public class Scanner {
                         i--;
                     }
                     break;
-                case 20: 
-                    if(Character.isDigit(c)) {
+                case 20:
+                    if (Character.isDigit(c)) {
                         estado = 20;
                         lexema += c;
                     } else {
@@ -281,18 +270,17 @@ public class Scanner {
                     }
                     break;
                 case 21:
-                    if(c == '"'){
+                    if (c == '"') {
                         lexema += c;
                         estado = 22;
-                    }
-                    else if(c == '\n') {
+                    } else if (c == '\n') {
                         Token tu = new Token(TipoToken.error, lexema);
                         tokens.add(tu);
 
                         estado = 0;
                         lexema = "";
                         i--;
-                    } else{
+                    } else {
                         lexema += c;
                         estado = 21;
                     }
@@ -300,14 +288,13 @@ public class Scanner {
                 case 22:
                     Token tu = new Token(TipoToken.STRING, lexema);
                     tokens.add(tu);
-                    
+
                     lexema = "";
                     estado = 0;
                     i--;
                     break;
             }
         }
-
 
         return tokens;
     }
