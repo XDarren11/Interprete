@@ -1,5 +1,7 @@
 import java.util.List;
 
+import org.xml.sax.Parser;
+
 public class ASDR implements Parser {
 
     private int i = 0;
@@ -239,4 +241,439 @@ public class ASDR implements Parser {
         }
     }
 
+    void ELSE_STATEMENT() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.ELSE) {
+            match(TipoToken.ELSE);
+            STATEMENT();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'else'.");
+        }
+    }
+
+    void PRINT_STMT() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.PRINT) {
+            match(TipoToken.PRINT);
+            EXPRESSION();
+            if (preanalisis.tipo == TipoToken.SEMICOLON) {
+                match(TipoToken.SEMICOLON);
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'print'.");
+        }
+    }
+
+    void RETURN_STMT() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.RETURN) {
+            match(TipoToken.RETURN);
+            RETURN_EXP_OPC();
+            if (preanalisis.tipo == TipoToken.SEMICOLON) {
+                match(TipoToken.SEMICOLON);
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'return'.");
+        }
+    }
+
+    void RETURN_EXP_OPC() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS
+                || preanalisis.tipo == TipoToken.TRUE || preanalisis.tipo == TipoToken.FALSE
+                || preanalisis.tipo == TipoToken.NULL || preanalisis.tipo == TipoToken.NUMBER
+                || preanalisis.tipo == TipoToken.STRING || preanalisis.tipo == TipoToken.IDENTIFIER
+                || preanalisis.tipo == TipoToken.LEFT_PAREN) {
+            EXPRESSION();
+        }
+    }
+
+    void WHILE_STMT() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.WHILE) {
+            match(TipoToken.WHILE);
+            if (preanalisis.tipo == TipoToken.LEFT_PAREN) {
+                match(TipoToken.LEFT_PAREN);
+                EXPRESSION();
+                if (preanalisis.tipo == TipoToken.RIGHT_PAREN) {
+                    match(TipoToken.RIGHT_PAREN);
+                    STATEMENT();
+                }
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'while'");
+        }
+    }
+
+    void BLOCK() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.LEFT_BRACE) {
+            match(TipoToken.LEFT_BRACE);
+            DECLARATION();
+            if (preanalisis.tipo == TipoToken.RIGHT_BRACE) {
+                match(TipoToken.RIGHT_BRACE);
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '}'");
+        }
+    }
+
+    public void EXPRESSION() {
+        if (hayErrores) {
+            return;
+        }
+        ASSIGNMENT();
+    }
+
+    public void ASSIGNMENT(){
+        if (hayErrores) {
+            return
+        }
+        LOGIC_OR();
+        ASSIGNMENT_OPC();
+    }
+
+    public void ASSIGNMENT_OPC(){
+        if (hayErrores) {
+            return
+        }
+        if (preanalisis.tipo == TipoToken.EQUAL) {
+            match(TipoToken.EQUAL);
+            EXPRESSION();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '='");
+        }
+    }
+
+    public void LOGIC_OR() {
+        if (hayErrores) {
+            return;
+        }
+        LOGIC_AND();
+        LOGIC_OR_2();
+    }
+
+    public void LOGIC_OR_2() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.OR) {
+            match(TipoToken.OR);
+            LOGIC_AND();
+            LOGIC_OR_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'or'");
+        }
+    }
+
+    public void LOGIC_AND() {
+        if (hayErrores) {
+            return;
+        }
+        EQUALITY();
+        LOGIC_AND_2();
+    }
+
+    public void LOGIC_AND_2() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.AND) {
+            match(TipoToken.AND);
+            EQUALITY();
+            LOGIC_AND_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'and'");
+        }
+    }
+
+    public void EQUALITY() {
+        if (hayErrores)
+            return;
+        COMPARISON();
+        EQUALITY_2();
+    }
+
+    public void EQUALITY_2() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.BANG_EQUAL) {
+            match(TipoToken.BANG_EQUAL);
+            COMPARISON();
+            EQUALITY_2();
+        } else if (preanalisis.tipo == TipoToken.EQUAL_EQUAL) {
+            match(TipoToken.EQUAL_EQUAL);
+            COMPARISON();
+            EQUALITY_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '!=' o '=='.");
+        }
+    }
+
+    public void COMPARISON() {
+        if (hayErrores)
+            return;
+        TERM();
+        COMPARISON_2();
+    }
+
+    public void COMPARISON_2() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.LESS
+                || preanalisis.tipo == TipoToken.LESS_EQUAL
+                || preanalisis.tipo == TipoToken.GREATER
+                || preanalisis.tipo == TipoToken.GREATER_EQUAL) {
+            match(TipoToken.LESS);
+            match(TipoToken.LESS_EQUAL);
+            match(TipoToken.GREATER);
+            match(TipoToken.GREATER_EQUAL);
+
+            TERM();
+            COMPARISON_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '>', '>=', '<' o '<='.");
+        }
+    }
+
+    public void TERM() {
+        if (hayErrores)
+            return;
+        FACTOR();
+        TERM_2();
+    }
+
+    public void TERM_2() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.PLUS || preanalisis.tipo == TipoToken.MINUS) {
+            match(TipoToken.MINUS);
+            match(TipoToken.PLUS);
+            FACTOR();
+            TERM_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '-' o '+'.");
+        }
+    }
+
+    public void FACTOR() {
+        if (hayErrores)
+            return;
+        UNARY();
+        FACTOR_2();
+    }
+
+    public void FACTOR_2() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.SLASH || preanalisis.tipo == TipoToken.STAR) {
+            match(TipoToken.SLASH);
+            match(TipoToken.STAR);
+            UNARY();
+            FACTOR_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '/' o '*'.");
+        }
+    }
+
+    public void UNARY() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.BANG || preanalisis.tipo == TipoToken.MINUS) {
+            match(TipoToken.BANG);
+            match(TipoToken.MINUS);
+            UNARY();
+        } else if (preanalisis.tipo == TipoToken.TRUE ||
+                preanalisis.tipo == TipoToken.FALSE ||
+                preanalisis.tipo == TipoToken.NULL ||
+                preanalisis.tipo == TipoToken.NUMBER ||
+                preanalisis.tipo == TipoToken.STRING ||
+                preanalisis.tipo == TipoToken.IDENTIFIER ||
+                preanalisis.tipo == TipoToken.LEFT_PAREN) {
+            CALL();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba '!' o '-'.");
+        }
+    }
+
+    public void CALL() {
+        if (hayErrores)
+            return;
+        PRIMARY();
+        CALL_2();
+    }
+
+    public void CALL_2() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.LEFT_PAREN) {
+            match(TipoToken.LEFT_PAREN);
+            ARGUMENTS_OPC();
+            if (preanalisis.tipo == TipoToken.RIGHT_PAREN) {
+                match(TipoToken.RIGHT_PAREN);
+                CALL_2();
+            } else {
+                hayErrores = true;
+                System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                        + ". Se esperaba '('.");
+            }
+        }
+    }
+
+    public void PRIMARY() {
+        if (hayErrores)
+            return;
+        if (preanalisis.tipo == TipoToken.TRUE ||
+                preanalisis.tipo == TipoToken.FALSE ||
+                preanalisis.tipo == TipoToken.NULL ||
+                preanalisis.tipo == TipoToken.NUMBER ||
+                preanalisis.tipo == TipoToken.STRING ||
+                preanalisis.tipo == TipoToken.IDENTIFIER) {
+
+            match(TipoToken.TRUE);
+            match(TipoToken.FALSE);
+            match(TipoToken.NULL);
+            match(TipoToken.NUMBER);
+            match(TipoToken.STRING);
+            match(TipoToken.IDENTIFIER);
+        } else if (preanalisis.tipo == TipoToken.LEFT_PAREN) {
+            match(TipoToken.LEFT_PAREN);
+            EXPRESSION();
+            if (preanalisis.tipo == TipoToken.RIGHT_PAREN) {
+                match(TipoToken.RIGHT_PAREN);
+            } else {
+                hayErrores = true;
+                System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                        + ". Se esperaba ')'.");
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'for', 'true', 'false', 'null', 'number', 'string' o 'identifier'.");
+        }
+
+    }
+
+    private void FUNCTION() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.IDENTIFIER) {
+            match(TipoToken.IDENTIFIER);
+            if (preanalisis.tipo == TipoToken.LEFT_PAREN) {
+                match(TipoToken.LEFT_PAREN);
+                PARAMETERS_OPC();
+                if (preanalisis.tipo == TipoToken.RIGHT_PAREN) {
+                    match(TipoToken.RIGHT_PAREN);
+                    BLOCK();
+                }
+            }
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'identifier'");
+        }
+    }
+
+    private void PARAMETERS_OPC() {
+        if (hayErrores) {
+            return;
+        }
+        PARAMETERS();
+    }
+
+    private void PARAMETERS() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.IDENTIFIER) {
+            match(TipoToken.IDENTIFIER);
+            PARAMETERS_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba 'identifier'");
+        }
+    }
+
+    private void PARAMETERS_2() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.COMMA) {
+            match(TipoToken.COMMA);
+            match(TipoToken.IDENTIFIER);
+            PARAMETERS_2();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba ',' o 'identifier'.");
+        }
+    }
+
+    private void ARGUMENTS_OPC() {
+        if (hayErrores) {
+            return;
+        }
+        EXPRESSION();
+        ARGUMENTS();
+    }
+
+    private void ARGUMENTS() {
+        if (hayErrores) {
+            return;
+        }
+        if (preanalisis.tipo == TipoToken.COMMA) {
+            match(TipoToken.COMMA);
+            EXPRESSION();
+            ARGUMENTS();
+        } else {
+            hayErrores = true;
+            System.out.println("Error en la línea " + preanalisis.linea + ", columna: " + preanalisis.columnaE
+                    + ". Se esperaba ','");
+        }
+    }
+
+    private void match(TipoToken tt) {
+        if (preanalisis.tipo == tt) {
+            i++;
+            preanalisis = tokens.get(i);
+        }
+    }
 }
