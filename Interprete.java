@@ -12,13 +12,19 @@ public class Interprete {
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
-            System.out.println("Uso correcto: interprete [archivo.txt]");
+            System.out.println("El uso correcto: interprete [archivo.txt]\n");
 
-            // Convención defininida en el archivo "system.h" de UNIX
+            for (String a : args) {
+                System.out.println("\n\n\n//////////////////////////\n prueba:" + a + "\n");
+                ejecutarArchivo(a);
+
+            }
             System.exit(64);
         } else if (args.length == 1) {
             ejecutarArchivo(args[0]);
+
         } else {
+            System.out.println("prompt");
             ejecutarPrompt();
         }
     }
@@ -51,27 +57,32 @@ public class Interprete {
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.scan();
 
+            int i = 0;
+
             for (Token token : tokens) {
-                System.out.println(token);
+                if (token.tipo == TipoToken.ERROR_LEXICAL) {
+                    i++;
+                    reportar(token.linea, token.columnaE, token.lexema);
+
+                }
             }
+
+            if (i != 0) {
+                System.exit(0);
+            }
+
+            parser parser = new ASDR(tokens);
+            parser.parse();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
     }
 
-    /*
-     * El método error se puede usar desde las distintas clases
-     * para reportar los errores:
-     * Interprete.error(....);
-     */
-    static void error(int linea, String mensaje) {
-        reportar(linea, "", mensaje);
-    }
-
-    private static void reportar(int linea, String posicion, String mensaje) {
+    private static void reportar(int linea, Integer posicion, Object mensaje) {
         System.err.println(
-                "[linea " + linea + "] Error " + posicion + ": " + mensaje);
+                "[linea " + linea + " posicion " + posicion + "] : " + mensaje);
         existenErrores = true;
     }
 
